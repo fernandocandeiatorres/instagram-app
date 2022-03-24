@@ -21,8 +21,9 @@ import {
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { db, storage } from "../firebase";
 import Moment from "react-moment";
+import { deleteObject, ref } from "firebase/storage";
 
 export default function Post({ id, username, userImg, img, caption }) {
   const { data: session } = useSession();
@@ -32,6 +33,7 @@ export default function Post({ id, username, userImg, img, caption }) {
   const [likes, setLikes] = useState([]);
   const [hasLiked, setHasLiked] = useState(false);
   const [isTruncate, setIsTruncate] = useState(true);
+  const [open, setOpen] = useState(false);
 
   // Listen to the comments
   useEffect(() => {
@@ -62,6 +64,13 @@ export default function Post({ id, username, userImg, img, caption }) {
     );
   }, [likes]);
 
+  const deletePost = async () => {
+    const imageRef = ref(storage, `posts/${id}/image`);
+    await deleteDoc(doc(db, "posts", id));
+    await deleteObject(imageRef);
+    console.log("deleted!");
+  };
+
   const likePost = async () => {
     if (hasLiked) {
       await deleteDoc(doc(db, "posts", id, "likes", session.user.uid));
@@ -86,6 +95,8 @@ export default function Post({ id, username, userImg, img, caption }) {
     });
   };
 
+  console.log(open);
+
   return (
     <div className="bg-white my-7 border rounded-sm">
       {/* Header */}
@@ -96,7 +107,22 @@ export default function Post({ id, username, userImg, img, caption }) {
           alt="user image"
         />
         <p className="flex-1 font-bold">{username}</p>
-        <DotsHorizontalIcon className="h-5" />
+        <div className="flex justify-center items-center space-x-2">
+          {session?.user.username === username && (
+            <p
+              onClick={deletePost}
+              className={`${
+                !open ? "hidden" : null
+              } p-1 rounded-lg  bg-white cursor-pointer hover:text-red-500`}
+            >
+              Delete
+            </p>
+          )}
+          <DotsHorizontalIcon
+            onClick={() => setOpen(!open)}
+            className="h-5 disabled cursor-pointer"
+          />
+        </div>
       </div>
 
       {/* img */}
