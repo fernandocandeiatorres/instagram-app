@@ -23,7 +23,7 @@ export default function Modal() {
   const [loading, setLoading] = useState(false);
 
   const uploadPost = async () => {
-    if (loading) return;
+    if (loading) return; // O user nao spammar uploads
 
     setLoading(true);
 
